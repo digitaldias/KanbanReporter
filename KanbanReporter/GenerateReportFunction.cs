@@ -3,6 +3,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Threading.Tasks;
 
 namespace KanbanReporter
 {
@@ -13,7 +14,7 @@ namespace KanbanReporter
     {
 
         [FunctionName("GenerateReportFunction")]
-        public static void Run([TimerTrigger("*/10 * * * * *")]TimerInfo myTimer, TraceWriter log, ExecutionContext context)
+        public static async Task Run([TimerTrigger("*/10 * * * * *")]TimerInfo myTimer, TraceWriter log, ExecutionContext context)
         {
             var configuration  = CreateConfiguration(context);
             var settings       = new Settings(configuration);
@@ -22,10 +23,9 @@ namespace KanbanReporter
             var reportService  = new ReportService(logger, settings);
 
             // Run the report synchronously (We need async support in Azure Functions!)
-            reportService
-                .CreateReportAsync()
-                .GetAwaiter()
-                .GetResult();                        
+            await reportService.CreateReportAsync();
+                //.GetAwaiter()
+                //.GetResult();                        
 
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
         }
