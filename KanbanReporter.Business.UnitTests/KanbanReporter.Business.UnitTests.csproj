@@ -81,7 +81,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AdoClientTests.cs" />
     <Compile Include="ExceptionHandlerTests.cs" />
     <Compile Include="GuidValidatorTests.cs" />
     <Compile Include="MarkdownReportCreatorTests.cs" />
