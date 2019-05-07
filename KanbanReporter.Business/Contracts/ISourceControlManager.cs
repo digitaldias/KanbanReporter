@@ -1,13 +1,10 @@
 ﻿using KanbanReporter.Business.Entities;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace KanbanReporter.Business.Contracts
 {
-    internal interface IAdoClient
+    internal interface ISourceControlManager
     {
-        Task<List<CompleteWorkItem>> GetWorkItemsFromQueryAsync(AdoQuery adoQuery);
 
         Task<VersionedFileDetails> GetVersionDetailsForReadmeFileAsync();
 
