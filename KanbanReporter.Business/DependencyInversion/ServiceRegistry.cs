@@ -12,8 +12,8 @@ namespace KanbanReporter.Business.DependencyInversion
             For<IExceptionHandler>().Use<ExceptionHandler>();
             For<IMarkdownReportCreator>().Use<MarkdownReportCreator>();
             For<IGuidValidator>().Use<GuidValidator>();
-            For<IQueryGenerator>().Use<QueryGenerator>();
-            For<IAdoClient>().Use<AdoClient>();
+            For<IQueryManager>().Use<QueryManager>();            
+            For<ISourceControlManager>().Use<SourceControlManager>();
 
             // Singletons
             For<ILogger>().Singleton().Use(log);
