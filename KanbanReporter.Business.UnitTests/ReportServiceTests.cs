@@ -13,8 +13,8 @@ namespace KanbanReporter.Business.UnitTests
     public class ReportServiceTests 
     {
         private readonly Mock<ILogger>                _loggerMock;
-        private readonly Mock<IAdoClient>             _adoClientMock;
-        private readonly Mock<IQueryGenerator>        _queryGeneratorMock;
+        private readonly Mock<ISourceControlManager>  _sourceControlManagerMock;
+        private readonly Mock<IQueryManager>          _queryManagerMock;
         private readonly Mock<IMarkdownReportCreator> _markdownReportCreatorMock;
 
         // Note that we need a "real" ExceptionHandler to get any testing done
@@ -25,12 +25,12 @@ namespace KanbanReporter.Business.UnitTests
         public ReportServiceTests()
         {
             _loggerMock                = new Mock<ILogger>();
-            _adoClientMock             = new Mock<IAdoClient>();
-            _queryGeneratorMock        = new Mock<IQueryGenerator>();
+            _sourceControlManagerMock  = new Mock<ISourceControlManager>();
+            _queryManagerMock        = new Mock<IQueryManager>();
             _markdownReportCreatorMock = new Mock<IMarkdownReportCreator>();
             _exceptionHandler          = new ExceptionHandler(_loggerMock.Object);
 
-            Instance = new ReportService(_loggerMock.Object, _adoClientMock.Object, _markdownReportCreatorMock.Object, _exceptionHandler, _queryGeneratorMock.Object);
+            Instance = new ReportService(_loggerMock.Object, _markdownReportCreatorMock.Object, _exceptionHandler, _queryManagerMock.Object, _sourceControlManagerMock.Object);
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace KanbanReporter.Business.UnitTests
             await Instance.CreateReportAsync();
 
             // Assert
-            _adoClientMock.Verify(client => client.GetWorkItemsFromQueryAsync(It.IsAny<AdoQuery>()), Times.Once());
+            _queryManagerMock.Verify(client => client.GetWorkItemsFromQueryAsync(It.IsAny<AdoQuery>()), Times.Once());
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace KanbanReporter.Business.UnitTests
             await Instance.CreateReportAsync();
 
             // Assert
-            _adoClientMock.Verify(adoClient => adoClient.GetVersionDetailsForReadmeFileAsync(), Times.Never());
+            _sourceControlManagerMock.Verify(adoClient => adoClient.GetVersionDetailsForReadmeFileAsync(), Times.Never());
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace KanbanReporter.Business.UnitTests
             await Instance.CreateReportAsync();
 
             // Assert
-            _adoClientMock.Verify(adoClient => adoClient.GetVersionDetailsForReadmeFileAsync(), Times.Once());
+            _sourceControlManagerMock.Verify(adoClient => adoClient.GetVersionDetailsForReadmeFileAsync(), Times.Once());
         }
 
         [Fact]
@@ -97,13 +97,13 @@ namespace KanbanReporter.Business.UnitTests
             var workItems = AdoClientWillReturnOneHundredWorkItems();
             var fakeVersion = Builder<VersionedFileDetails>.CreateNew().Build();
             _markdownReportCreatorMock.Setup(creator => creator.CreateFromWorkItems(workItems)).Returns("#awesome");
-            _adoClientMock.Setup(client => client.GetVersionDetailsForReadmeFileAsync()).Returns(Task.FromResult(fakeVersion));
+            _sourceControlManagerMock.Setup(client => client.GetVersionDetailsForReadmeFileAsync()).Returns(Task.FromResult(fakeVersion));
 
             // Act
             await Instance.CreateReportAsync();
 
             // Assert
-            _adoClientMock.Verify(client => client.CommitReportAndCreatePullRequestAsync(It.IsAny<string>(), fakeVersion), Times.Once);
+            _sourceControlManagerMock.Verify(client => client.CommitReportAndCreatePullRequestAsync(It.IsAny<string>(), fakeVersion), Times.Once);
         }
 
 
@@ -114,7 +114,7 @@ namespace KanbanReporter.Business.UnitTests
             var workItems = AdoClientWillReturnOneHundredWorkItems();
             var fakeVersion = Builder<VersionedFileDetails>.CreateNew().Build();
             _markdownReportCreatorMock.Setup(creator => creator.CreateFromWorkItems(workItems)).Returns("#awesome");
-            _adoClientMock.Setup(client => client.GetVersionDetailsForReadmeFileAsync()).Returns(Task.FromResult(fakeVersion));
+            _sourceControlManagerMock.Setup(client => client.GetVersionDetailsForReadmeFileAsync()).Returns(Task.FromResult(fakeVersion));
 
             // Act
             await Instance.CreateReportAsync();
@@ -130,8 +130,8 @@ namespace KanbanReporter.Business.UnitTests
             var workItems = AdoClientWillReturnOneHundredWorkItems();
             var fakeVersion = Builder<VersionedFileDetails>.CreateNew().Build();
             _markdownReportCreatorMock.Setup(creator => creator.CreateFromWorkItems(workItems)).Returns("#awesome");
-            _adoClientMock.Setup(client => client.GetVersionDetailsForReadmeFileAsync()).Returns(Task.FromResult(fakeVersion));
-            _adoClientMock.Setup(client => client.CommitReportAndCreatePullRequestAsync(It.IsAny<string>(), fakeVersion)).Returns(Task.FromResult(true));
+            _sourceControlManagerMock.Setup(client => client.GetVersionDetailsForReadmeFileAsync()).Returns(Task.FromResult(fakeVersion));
+            _sourceControlManagerMock.Setup(client => client.CommitReportAndCreatePullRequestAsync(It.IsAny<string>(), fakeVersion)).Returns(Task.FromResult(true));
 
             // Act
             await Instance.CreateReportAsync();
@@ -144,10 +144,10 @@ namespace KanbanReporter.Business.UnitTests
         private List<CompleteWorkItem> AdoClientWillReturnOneHundredWorkItems()
         {            
             var oneHundredWorkItems = Builder<CompleteWorkItem>.CreateListOfSize(100).Build().ToList();
-            _adoClientMock.Setup(client => client.GetWorkItemsFromQueryAsync(It.IsAny<AdoQuery>())).Returns(Task.FromResult(oneHundredWorkItems));
+            _queryManagerMock.Setup(client => client.GetWorkItemsFromQueryAsync(It.IsAny<AdoQuery>())).Returns(Task.FromResult(oneHundredWorkItems));
 
             var manyAdoQueries = Builder<AdoQuery>.CreateListOfSize(15).Build().AsEnumerable();
-            _queryGeneratorMock.Setup(client => client.LoadAllAsync()).Returns(Task.FromResult(manyAdoQueries));
+            _queryManagerMock.Setup(client => client.LoadAllAsync()).Returns(Task.FromResult(manyAdoQueries));
 
             return oneHundredWorkItems;
         }

@@ -14,34 +14,34 @@ namespace KanbanReporter.Business.Implementation
         private const string EXPECTED_QUERY_NAME = "KanbanReporterQuery";
 
         // External dependencies
-        private readonly ILogger                _log;        
-        private readonly IAdoClient             _adoClient;
+        private readonly ILogger                _log;                
         private readonly IMarkdownReportCreator _markdownReportCreator;
         private readonly IExceptionHandler      _exceptionHandler;
-        private readonly IQueryGenerator        _queryGenerator;
+        private readonly IQueryManager          _queryManager;
+        private readonly ISourceControlManager  _sourceControlManager;
 
         public ReportService(ILogger log, ISettings settings)
         {
             if(_dependencyResolver == null)
                  _dependencyResolver = new Container(new ServiceRegistry(log, settings));
 
-            _log                   = log;
-            _adoClient             = _dependencyResolver.GetInstance<IAdoClient>();
+            _log                   = log;            
             _markdownReportCreator = _dependencyResolver.GetInstance<IMarkdownReportCreator>();
             _exceptionHandler      = _dependencyResolver.GetInstance<IExceptionHandler>();
-            _queryGenerator        = _dependencyResolver.GetInstance<IQueryGenerator>();
+            _queryManager          = _dependencyResolver.GetInstance<IQueryManager>();
+            _sourceControlManager  = _dependencyResolver.GetInstance<ISourceControlManager>();
         }
 
         /// <summary>
         /// Used for adding support for unit-testing. Do not make this constructor public
         /// </summary>
-        internal ReportService(ILogger log, IAdoClient adoClient, IMarkdownReportCreator markdownReportCreator, IExceptionHandler exceptionHandler, IQueryGenerator queryGenerator)
+        internal ReportService(ILogger log, IMarkdownReportCreator markdownReportCreator, IExceptionHandler exceptionHandler, IQueryManager queryManager, ISourceControlManager sourceControlManager)
         {
-            _log                   = log;
-            _adoClient             = adoClient;
+            _log                   = log;            
             _markdownReportCreator = markdownReportCreator;
             _exceptionHandler      = exceptionHandler;
-            _queryGenerator        = queryGenerator;
+            _queryManager          = queryManager;
+            _sourceControlManager  = sourceControlManager;
         }
 
 
@@ -50,16 +50,16 @@ namespace KanbanReporter.Business.Implementation
             _log.Enter(this);
 
             // If a Query does not exist, generate it
-            var adoQueries = await _queryGenerator.LoadAllAsync();
+            var adoQueries = await _queryManager.LoadAllAsync();
             var reportQuery = adoQueries.FirstOrDefault(q => q.Name == EXPECTED_QUERY_NAME);
 
             if (reportQuery == null)
             {
-                reportQuery = await _queryGenerator.GenerateKanbanReportQueryAsync(EXPECTED_QUERY_NAME);
+                reportQuery = await _queryManager.GenerateKanbanReportQueryAsync(EXPECTED_QUERY_NAME);
             }
 
             // Get AzDO WorkItems from Query
-            var workItems = await _exceptionHandler.GetAsync(() => _adoClient.GetWorkItemsFromQueryAsync(reportQuery));
+            var workItems = await _exceptionHandler.GetAsync(() => _queryManager.GetWorkItemsFromQueryAsync(reportQuery));
             if (workItems == null || !workItems.Any())
             {
                 _log.LogWarning("CreateReportAsync() did not find any workItems to process");
@@ -75,7 +75,7 @@ namespace KanbanReporter.Business.Implementation
             }
 
             // Retrieve version details for our target README.md file
-            var readmefileDetails = await _adoClient.GetVersionDetailsForReadmeFileAsync();
+            var readmefileDetails = await _sourceControlManager.GetVersionDetailsForReadmeFileAsync();
             if (readmefileDetails == null)
             {
                 _log.LogWarning("Unable to find target README.md file");
@@ -83,7 +83,7 @@ namespace KanbanReporter.Business.Implementation
             }
 
             // Commit and create pull request
-            if (!await _adoClient.CommitReportAndCreatePullRequestAsync(finalReport, readmefileDetails))
+            if (!await _sourceControlManager.CommitReportAndCreatePullRequestAsync(finalReport, readmefileDetails))
             {
                 _log.LogWarning("Unable to push the latest report to source control");
                 return;

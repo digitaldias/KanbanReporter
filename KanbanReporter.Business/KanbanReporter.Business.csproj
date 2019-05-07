@@ -49,13 +49,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Contracts\IGuidValidator.cs" />
-    <Compile Include="Contracts\IAdoClient.cs" />
     <Compile Include="Contracts\IExceptionHandler.cs" />
     <Compile Include="Contracts\ILogger.cs" />
     <Compile Include="Contracts\IMarkdownReportCreator.cs" />
-    <Compile Include="Contracts\IQueryGenerator.cs" />
+    <Compile Include="Contracts\IQueryManager.cs" />
     <Compile Include="Contracts\IReportService.cs" />
     <Compile Include="Contracts\ISettings.cs" />
+    <Compile Include="Contracts\ISourceControlManager.cs" />
     <Compile Include="DependencyInversion\ServiceRegistry.cs" />
     <Compile Include="Entities\AdoQuery.cs" />
     <Compile Include="Entities\Column.cs" />
@@ -66,15 +66,15 @@
     <Compile Include="Entities\PullRequest.cs" />
     <Compile Include="Entities\VersionedFileDetails.cs" />
     <Compile Include="Entities\WorkItemUpdate.cs" />
-    <Compile Include="Implementation\AdoClient.cs" />
     <Compile Include="Implementation\AdoClientBase.cs" />
     <Compile Include="Implementation\ExceptionHandler.cs" />
     <Compile Include="Entities\QueryResult.cs" />
     <Compile Include="Entities\Workitem.cs" />
     <Compile Include="Implementation\GuidValidator.cs" />
     <Compile Include="Implementation\MarkdownReportCreator.cs" />
-    <Compile Include="Implementation\QueryGenerator.cs" />
+    <Compile Include="Implementation\QueryManager.cs" />
     <Compile Include="Implementation\ReportService.cs" />
+    <Compile Include="Implementation\SourceControlManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
