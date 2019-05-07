@@ -11,21 +11,43 @@ namespace KanbanReporter.Business.Implementation
         // State
         private static HttpClient _httpClient;
 
-        private  string           _adoPersonalAccessToken;
+        protected string _adoOrgName;
+        protected string _adoProjectName;
+        protected string _adoPersonalAccessToken;
+        protected string _adoRepositoryId;
+        protected string _repositoryName;
+        protected string _adoBranchName;
+        protected string _adoQueryGuid;
+        protected string _markdownFilePath;
 
         // External dependencies
-        private readonly ISettings  _settings;
-        private readonly ILogger    _log;
+        protected readonly ISettings  _settings;
+        protected readonly ILogger    _log;
 
         public AdoClientBase(ISettings settings, ILogger log)
         {
             _settings = settings;
             _log = log;
 
-            if(string.IsNullOrEmpty(_adoPersonalAccessToken))
-            {
-                _adoPersonalAccessToken = settings["AdoPersonalAccessToken"];
-            }
+            _adoOrgName             = settings["AdoOrgName"];
+            _adoProjectName         = settings["AdoProjectName"];
+            _adoPersonalAccessToken = settings["AdoPersonalAccessToken"];
+            _adoRepositoryId        = settings["AdoRepositoryId"];
+            _repositoryName         = settings["AdoRepositoryName"];
+            _adoBranchName          = settings["AdoBranchName"];
+            _adoQueryGuid           = settings["AdoQueryGuid"];
+            _repositoryName         = settings["AdoRepositoryName"];
+            _markdownFilePath       = settings["MarkdownFilePath"];
+
+            // All settings are required
+            if (string.IsNullOrEmpty(_adoOrgName))             throw new InvalidProgramException("AdoOrgName was not set");
+            if (string.IsNullOrEmpty(_adoProjectName))         throw new InvalidProgramException("AdoProjectName was not set");
+            if (string.IsNullOrEmpty(_adoQueryGuid))           throw new InvalidProgramException("AdoQueryGuid was not set");
+            if (string.IsNullOrEmpty(_adoPersonalAccessToken)) throw new InvalidProgramException("AdoPersonalAccessToken was not set");
+            if (string.IsNullOrEmpty(_adoRepositoryId))        throw new InvalidProgramException("AdoRepositoryId was not set");
+            if (string.IsNullOrEmpty(_repositoryName))         throw new InvalidProgramException("AdoRepositoryName was not set");
+            if (string.IsNullOrEmpty(_markdownFilePath))       throw new InvalidProgramException("MarkdownFilePath was not set");
+            if (string.IsNullOrEmpty(_adoBranchName))          throw new InvalidProgramException("The ADO Branch name was not set");
         }
 
         protected HttpClient HttpClient
@@ -36,13 +58,32 @@ namespace KanbanReporter.Business.Implementation
             }
         }
 
-        protected async Task<HttpResponseMessage> ExecuteRestCallAsync(Uri uri)
+        protected async Task<HttpResponseMessage> GetAsync(Uri uri)
         {
             _log.Enter(this, args: uri.ToString());
 
             InitializeHttpClientWithPersonalAccessToken();
 
-            return await HttpClient.GetAsync(uri);
+            var result = await HttpClient.GetAsync(uri);
+            if (!result.IsSuccessStatusCode)
+            {
+                _log.LogError($"Get failed: {result.ReasonPhrase} (url: {uri.ToString()}");
+            }
+            return result;
+
+        }
+
+        protected async Task<HttpResponseMessage> PostAsync(Uri uri, HttpContent content)
+        {
+            _log.Enter(this);
+
+            InitializeHttpClientWithPersonalAccessToken();
+            var result = await _httpClient.PostAsync(uri, content);
+            if(!result.IsSuccessStatusCode)
+            {
+                _log.LogError($"Post failed: {result.ReasonPhrase} (url: {uri.ToString()}");
+            }
+            return result;
         }
 
         private void InitializeHttpClientWithPersonalAccessToken()
