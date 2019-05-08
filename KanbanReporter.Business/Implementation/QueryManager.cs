@@ -13,13 +13,14 @@ using System.Threading.Tasks;
 namespace KanbanReporter.Business.Implementation
 {
     internal class QueryManager : AdoClientBase, IQueryManager
-    {                
+    {
         private const string LIST_QUERIES_TEMPLATE = "https://dev.azure.com/{0}/{1}/_apis/wit/queries?$depth=2&api-version=5.0";
 
         // State
         private string _sharedQueriesId;
 
-        public QueryManager(ISettings settings, ILogger log, IGuidValidator guidValidator): base(settings, log){
+        public QueryManager(ISettings settings, ILogger log, IGuidValidator guidValidator) : base(settings, log)
+        {
         }
 
         public async Task<AdoQuery> GenerateKanbanReportQueryAsync(string queryName)
@@ -28,11 +29,12 @@ namespace KanbanReporter.Business.Implementation
                 return null;
 
             var postNewQueryUri = new Uri($"https://dev.azure.com/{_adoOrgName}/{_adoProjectName}/_apis/wit/queries/{_sharedQueriesId}?api-version=5.0");
-            var query = new JObject {
+            var query = new JObject
+            {
                 ["name"] = queryName,
                 ["wiql"] = "Select System.ID, System.Title, [System.AssignedTo], [System.IterationPath], [System.CreatedDate], [Microsoft.VSTS.Common.ClosedDate] from WorkItems Where System.WorkItemType = 'User Story' and System.State = 'Closed' order by System.IterationPath asc"
             };
-            
+
             var httpContent = new StringContent(query.ToString(), Encoding.UTF8, "application/json");
 
             var httpResponse = await HttpClient.PostAsync(postNewQueryUri, httpContent);
@@ -41,10 +43,11 @@ namespace KanbanReporter.Business.Implementation
             var rawText = await httpResponse.Content.ReadAsStringAsync();
             var jObject = JsonConvert.DeserializeObject<JObject>(rawText);
 
-            return new AdoQuery{
-                Id   = jObject["id"  ].Value<string>(),
+            return new AdoQuery
+            {
+                Id = jObject["id"].Value<string>(),
                 Name = jObject["name"].Value<string>(),
-                Url  = jObject["_links"]["wiql" ]["href"].Value<string>(),
+                Url = jObject["_links"]["wiql"]["href"].Value<string>(),
             };
         }
 
@@ -63,7 +66,7 @@ namespace KanbanReporter.Business.Implementation
             if (httpResponse.IsSuccessStatusCode)
             {
                 var content = await httpResponse.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<QueryResult>(content);
+                var result  = JsonConvert.DeserializeObject<QueryResult>(content);
 
                 if (result != null && result.workItems.Any() && result.columns.Any())
                     return await ExtractAllWorkitemsAsync(result);
@@ -89,8 +92,9 @@ namespace KanbanReporter.Business.Implementation
 
             _sharedQueriesId = match["id"].Value<string>();
 
-            var allSharedQueries = (JArray) match["children"];
-            var result = allSharedQueries.Select(q => new AdoQuery {
+            var allSharedQueries = (JArray)match["children"];
+            var result = allSharedQueries.Select(q => new AdoQuery
+            {
                 Name = q["name"].Value<string>(),
                 Url  = q["url"].Value<string>(),
                 Id   = q["id"].Value<string>()
@@ -105,9 +109,10 @@ namespace KanbanReporter.Business.Implementation
 
             var destinationBag = new ConcurrentBag<CompleteWorkItem>();
 
-            var allTasks = result.workItems.Select(async workItem => {
+            Parallel.ForEach(result.workItems, async workItem => {
                 var uri = new Uri(workItem.url);
-                var httpResponse = await HttpClient.GetAsync(uri);
+                var httpResponse = await GetAsync(uri);
+
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
@@ -119,9 +124,7 @@ namespace KanbanReporter.Business.Implementation
                     }
                 }
             });
-            await Task.WhenAll(allTasks);
-
-            return destinationBag.ToList();
+            return await Task.FromResult(destinationBag.ToList());
         }
 
         private async Task AddUpdatesToWorkItemAsync(CompleteWorkItem completeWorkItem)
