@@ -17,7 +17,7 @@ namespace KanbanReporter
 
         public void Enter(object sender, [CallerMemberName] string methodName = "", params object[] args)
         {
-            var arguments = TransformArgumentsToCommaseparatedString();
+            var arguments = string.Join(", ", args.Select(a => $"'{a.ToString()}'"));
             _log.Info($"[{DateTime.Now.ToString("hh:mm:ss")}] {sender.GetType().FullName}.{methodName}({arguments})");
         }
 
@@ -34,15 +34,6 @@ namespace KanbanReporter
         public void LogError(string errorMessage, Exception exception = null, [CallerMemberName] string source = null)
         {
             _log.Error(errorMessage, exception, source);
-        }
-
-        private string TransformArgumentsToCommaseparatedString(params object[] args)
-        {
-            if (args == null || !args.Any())
-                return string.Empty;
-
-            var arguments = args.Select(a => $"'{a?.ToString()}'");
-            return string.Join(", ", arguments);
         }
     }
 }
