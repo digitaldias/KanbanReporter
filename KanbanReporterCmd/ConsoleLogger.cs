@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace CanbanReporterCmd
+namespace KanbanReporterCmd
 {
     public class ConsoleLogger : ILogger
     {

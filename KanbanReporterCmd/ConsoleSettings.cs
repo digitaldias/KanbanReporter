@@ -1,6 +1,6 @@
 ﻿using KanbanReporter.Business.Contracts;
 
-namespace CanbanReporterCmd
+namespace KanbanReporterCmd
 {
     internal class ConsoleSettings : ISettings
     {
