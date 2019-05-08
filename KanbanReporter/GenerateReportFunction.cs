@@ -24,8 +24,6 @@ namespace KanbanReporter
 
             // Run the report synchronously (We need async support in Azure Functions!)
             await reportService.CreateReportAsync();
-                //.GetAwaiter()
-                //.GetResult();                        
 
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
         }
