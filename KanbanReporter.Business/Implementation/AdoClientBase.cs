@@ -36,7 +36,6 @@ namespace KanbanReporter.Business.Implementation
             _repositoryName         = settings["AdoRepositoryName"];
             _adoBranchName          = settings["AdoBranchName"];
             _adoQueryGuid           = settings["AdoQueryGuid"];
-            _repositoryName         = settings["AdoRepositoryName"];
             _markdownFilePath       = settings["MarkdownFilePath"];
 
             // All settings are required

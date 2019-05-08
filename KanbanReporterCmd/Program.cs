@@ -1,7 +1,11 @@
 ﻿using KanbanReporter.Business.Implementation;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace KanbanReporterCmd
 {
@@ -13,7 +17,11 @@ namespace KanbanReporterCmd
 
             Console.WriteLine("KanbanReporter Tool " + GetAssemblyVersionString());
 
-
+            if (args.Length == 0 || args.Contains("--help"))
+            {
+                DisplayHelp();
+                return;
+            }
 
             var reportService = new ReportService(new ConsoleLogger(), new ConsoleSettings(args));
 
@@ -23,6 +31,33 @@ namespace KanbanReporterCmd
                 .GetResult();
 
             Console.WriteLine($"KanbanReporter finished in {stopwatch.ElapsedMilliseconds}ms.");
+        }
+
+        private static void DisplayHelp()
+        {
+            var builder = new StringBuilder();
+            builder.Append($"Usage:" + Environment.NewLine);
+            builder.Append("> KanbanReporter --settings-file <path to settings file>" + Environment.NewLine);
+            builder.Append(Environment.NewLine);
+            builder.Append(Environment.NewLine);
+            builder.Append("Sample settings: " + Environment.NewLine);
+
+            var jObject = new JObject
+            {
+                ["AdoOrgName"]             = "[Azure Devops Organisation Name]",
+                ["AdoProjectName"]         = "[The Project Name in Azure Devops]",
+                ["AdoPersonalAccessToken"] = "[Personal Access token for KanbanReporter (Guid)]",
+                ["AdoRepositoryId"]        = "[The GUID of the repository for which KanbanReporter will submit its report]",
+                ["AdoRepositoryName"]      = "[The name of the repository for which KanbanReporter will submit its report]",
+                ["AdoBranchName"]          = "[The branch that KanbanReporter will operate on]",                                
+                ["MarkdownFilePath"]       = "[Relative path to the readme file, i.e. /refs/heads/KanbanReporter/Readme.md]"
+            };
+
+            builder.Append(jObject.ToString(Formatting.Indented));
+            builder.Append(Environment.NewLine);
+            builder.Append("End of help");
+
+            Console.WriteLine(builder.ToString());
         }
 
         private static string GetAssemblyVersionString()
