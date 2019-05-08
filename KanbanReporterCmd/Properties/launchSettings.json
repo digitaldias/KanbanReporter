@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "KanbanReporterCmd": {
+      "commandName": "Project",
+      "commandLineArgs": "--settings-file C:\\temp\\kanbanreporter.settings.json"
+    }
+  }
+}
