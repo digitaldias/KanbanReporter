@@ -10,4 +10,8 @@
     <Folder Include="DependencyInversion\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\KanbanReporter.Business\KanbanReporter.Business.csproj" />
+  </ItemGroup>
+
 </Project>
