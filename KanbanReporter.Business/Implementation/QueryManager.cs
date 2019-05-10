@@ -25,6 +25,8 @@ namespace KanbanReporter.Business.Implementation
 
         public async Task<AdoQuery> GenerateKanbanReportQueryAsync(string queryName)
         {
+            _log.Enter(this, args: queryName);
+
             if (string.IsNullOrEmpty(_sharedQueriesId))
                 return null;
 
@@ -32,7 +34,7 @@ namespace KanbanReporter.Business.Implementation
             var query = new JObject
             {
                 ["name"] = queryName,
-                ["wiql"] = "Select System.ID, System.Title, [System.AssignedTo], [System.IterationPath], [System.CreatedDate], [Microsoft.VSTS.Common.ClosedDate] from WorkItems Where System.WorkItemType = 'User Story' and System.State = 'Closed' order by System.IterationPath asc"
+                ["wiql"] = $"Select System.ID, System.Title, [System.AssignedTo], [System.IterationPath], [System.CreatedDate], [Microsoft.VSTS.Common.ClosedDate] from WorkItems Where [System.TeamProject] = '{_adoProjectName}' and System.WorkItemType = 'User Story' and System.State = 'Closed' order by System.IterationPath asc"
             };
 
             var httpContent = new StringContent(query.ToString(), Encoding.UTF8, "application/json");
@@ -66,7 +68,7 @@ namespace KanbanReporter.Business.Implementation
             if (httpResponse.IsSuccessStatusCode)
             {
                 var content = await httpResponse.Content.ReadAsStringAsync();
-                var result  = JsonConvert.DeserializeObject<QueryResult>(content);
+                var result = JsonConvert.DeserializeObject<QueryResult>(content);
 
                 if (result != null && result.workItems.Any() && result.columns.Any())
                     return await ExtractAllWorkitemsAsync(result);
@@ -82,22 +84,24 @@ namespace KanbanReporter.Business.Implementation
             if (!responseMessage.IsSuccessStatusCode)
                 return null;
 
-            var rawText  = await responseMessage.Content.ReadAsStringAsync();
+            var rawText = await responseMessage.Content.ReadAsStringAsync();
             var jObjects = JsonConvert.DeserializeObject<JObject>(rawText);
-            var queries  = (JArray)jObjects["value"];
+            var queries = (JArray)jObjects["value"];
 
             var match = queries.FirstOrDefault(obj => obj["name"].Value<string>() == "Shared Queries");
             if (match == null)
                 return null;
 
             _sharedQueriesId = match["id"].Value<string>();
+            if (match["hasChildren"].Value<bool>() == false)
+                return new List<AdoQuery>();
 
             var allSharedQueries = (JArray)match["children"];
             var result = allSharedQueries.Select(q => new AdoQuery
             {
                 Name = q["name"].Value<string>(),
-                Url  = q["url"].Value<string>(),
-                Id   = q["id"].Value<string>()
+                Url = q["url"].Value<string>(),
+                Id = q["id"].Value<string>()
             });
 
             return result;
@@ -109,7 +113,9 @@ namespace KanbanReporter.Business.Implementation
 
             var destinationBag = new ConcurrentBag<CompleteWorkItem>();
 
-            Parallel.ForEach(result.workItems, async workItem => {
+            // Parallel.ForEach(result.workItems, async workItem =>
+            foreach(var workItem in result.workItems)
+            {
                 var uri = new Uri(workItem.url);
                 var httpResponse = await GetAsync(uri);
 
@@ -123,7 +129,7 @@ namespace KanbanReporter.Business.Implementation
                         destinationBag.Add(completeWorkItem);
                     }
                 }
-            });
+            };
             return await Task.FromResult(destinationBag.ToList());
         }
 
