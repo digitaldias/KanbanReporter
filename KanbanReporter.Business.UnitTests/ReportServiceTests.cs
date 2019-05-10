@@ -26,7 +26,7 @@ namespace KanbanReporter.Business.UnitTests
         {
             _loggerMock                = new Mock<ILogger>();
             _sourceControlManagerMock  = new Mock<ISourceControlManager>();
-            _queryManagerMock        = new Mock<IQueryManager>();
+            _queryManagerMock          = new Mock<IQueryManager>();
             _markdownReportCreatorMock = new Mock<IMarkdownReportCreator>();
             _exceptionHandler          = new ExceptionHandler(_loggerMock.Object);
 
@@ -94,8 +94,9 @@ namespace KanbanReporter.Business.UnitTests
         public async Task CreateReportAsync_VersionDetailFound_CommitsReport()
         {
             // Arrange
-            var workItems = AdoClientWillReturnOneHundredWorkItems();
+            var workItems   = AdoClientWillReturnOneHundredWorkItems();
             var fakeVersion = Builder<VersionedFileDetails>.CreateNew().Build();
+
             _markdownReportCreatorMock.Setup(creator => creator.CreateFromWorkItems(workItems)).Returns("#awesome");
             _sourceControlManagerMock.Setup(client => client.GetVersionDetailsForReadmeFileAsync()).Returns(Task.FromResult(fakeVersion));
 
@@ -127,8 +128,9 @@ namespace KanbanReporter.Business.UnitTests
         public async Task CreateReportAsync_CommitSucceeds_SuccessInformationIsLogged()
         {
             // Arrange
-            var workItems = AdoClientWillReturnOneHundredWorkItems();
+            var workItems   = AdoClientWillReturnOneHundredWorkItems();
             var fakeVersion = Builder<VersionedFileDetails>.CreateNew().Build();
+
             _markdownReportCreatorMock.Setup(creator => creator.CreateFromWorkItems(workItems)).Returns("#awesome");
             _sourceControlManagerMock.Setup(client => client.GetVersionDetailsForReadmeFileAsync()).Returns(Task.FromResult(fakeVersion));
             _sourceControlManagerMock.Setup(client => client.CommitReportAndCreatePullRequestAsync(It.IsAny<string>(), fakeVersion)).Returns(Task.FromResult(true));
