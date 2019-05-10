@@ -17,7 +17,6 @@ namespace KanbanReporter.Business.Implementation
         protected string _adoRepositoryId;
         protected string _repositoryName;
         protected string _adoBranchName;
-        protected string _adoQueryGuid;
         protected string _markdownFilePath;
 
         // External dependencies
@@ -29,19 +28,24 @@ namespace KanbanReporter.Business.Implementation
             _settings = settings;
             _log = log;
 
-            _adoOrgName             = settings["AdoOrgName"];
-            _adoProjectName         = settings["AdoProjectName"];
-            _adoPersonalAccessToken = settings["AdoPersonalAccessToken"];
-            _adoRepositoryId        = settings["AdoRepositoryId"];
-            _repositoryName         = settings["AdoRepositoryName"];
-            _adoBranchName          = settings["AdoBranchName"];
-            _adoQueryGuid           = settings["AdoQueryGuid"];
-            _markdownFilePath       = settings["MarkdownFilePath"];
+            try
+            {
+                _adoOrgName             = settings["AdoOrgName"];
+                _adoProjectName         = settings["AdoProjectName"];
+                _adoPersonalAccessToken = settings["AdoPersonalAccessToken"];
+                _adoRepositoryId        = settings["AdoRepositoryId"];
+                _repositoryName         = settings["AdoRepositoryName"];
+                _adoBranchName          = settings["AdoBranchName"];
+                _markdownFilePath       = settings["MarkdownFilePath"];
+            }
+            catch(Exception ex)
+            {
+                _log.LogError(ex.Message);
+            }
 
             // All settings are required
             if (string.IsNullOrEmpty(_adoOrgName))             throw new InvalidProgramException("AdoOrgName was not set");
             if (string.IsNullOrEmpty(_adoProjectName))         throw new InvalidProgramException("AdoProjectName was not set");
-            if (string.IsNullOrEmpty(_adoQueryGuid))           throw new InvalidProgramException("AdoQueryGuid was not set");
             if (string.IsNullOrEmpty(_adoPersonalAccessToken)) throw new InvalidProgramException("AdoPersonalAccessToken was not set");
             if (string.IsNullOrEmpty(_adoRepositoryId))        throw new InvalidProgramException("AdoRepositoryId was not set");
             if (string.IsNullOrEmpty(_repositoryName))         throw new InvalidProgramException("AdoRepositoryName was not set");
