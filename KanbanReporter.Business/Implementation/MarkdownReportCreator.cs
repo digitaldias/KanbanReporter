@@ -10,10 +10,12 @@ namespace KanbanReporter.Business.Implementation
     internal class MarkdownReportCreator : IMarkdownReportCreator
     {
         private readonly ILogger _log;
+        private readonly ISettings _settings;
 
-        public MarkdownReportCreator(ILogger log)
+        public MarkdownReportCreator(ILogger log, ISettings settings)
         {
-            _log = log;
+            _log      = log;
+            _settings = settings;
         }
 
         public string CreateFromWorkItems(List<CompleteWorkItem> workItems)
@@ -56,6 +58,10 @@ namespace KanbanReporter.Business.Implementation
             foreach (var group in sprintGroups)
             {
                 var groupText = new List<string>();
+
+                if (!group.Key.Contains("\\"))
+                    continue;
+
                 var sprintName = group.Key.Split('\\')[1];
 
                 groupText.Add($@"## {sprintName}");
@@ -103,31 +109,20 @@ namespace KanbanReporter.Business.Implementation
             DateTime stopTime  = DateTime.MinValue;
             
             var boardColumnUpdates = workItem.Updates.value.Where(v => v.fields != null && v.fields.SystemBoardColumn != null);
+            var workColumnName     = _settings["WorkColumnName"];
 
-            foreach (var update in boardColumnUpdates)
-            {
-                // When did it first enter into "Working on it"?
-                if (update.fields.SystemBoardColumn.newValue == "Working on it")
-                {
-                    if(startTime > update.revisedDate)
-                        startTime = update.revisedDate;
-                    continue;
-                }
 
-                // When did it last leave "Working on it"?
-                if(update.fields.SystemBoardColumn.oldValue == "Working on it")
-                {
-                    if(stopTime < update.revisedDate)
-                        stopTime = update.revisedDate;
-                    continue;
-                }
-            }
+            var enterWorkColumn = boardColumnUpdates.Where(c => c.fields.SystemBoardColumn.newValue == workColumnName).FirstOrDefault();
+            var leftWorkColumn  = boardColumnUpdates.Where(c => c.fields.SystemBoardColumn.oldValue == workColumnName).LastOrDefault();
+
+            startTime = enterWorkColumn.revisedDate;
+            stopTime  = leftWorkColumn.revisedDate;
 
             // Found both dates, otherwise return no time
             if (startTime < DateTime.MaxValue && stopTime > DateTime.MinValue)
             {
-                // Sometimes, the stoptime will give us weird values, so let's not accept more than 30 days off
-                if (stopTime - startTime > TimeSpan.FromDays(30))
+                // Sometimes, the stoptime will give us weird values, so let's not accept more than 90 days off
+                if (stopTime - startTime > TimeSpan.FromDays(90))
                     return TimeSpan.Zero;
 
                 return stopTime - startTime;
