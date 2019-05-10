@@ -10,7 +10,7 @@ namespace KanbanReporterCmd
         public void Enter(object sender, [CallerMemberName] string methodName = "", params object[] args)
         {
             var arguments = string.Join(',', args.Select(a => $"'{a}'"));
-            Console.WriteLine(sender.ToString() + $"{methodName}({arguments})");
+            Console.WriteLine(sender.ToString() + $".{methodName}({arguments})");
         }
 
         public void LogError(string errorMessage, Exception exception = null, [CallerMemberName] string source = null)
