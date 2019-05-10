@@ -14,7 +14,8 @@ namespace KanbanReporter.Business.Implementation
         private const string EXPECTED_QUERY_NAME = "KanbanReporterQuery";
 
         // External dependencies
-        private readonly ILogger                _log;                
+        private readonly ILogger                _log;
+        private readonly ISettings              _settings;
         private readonly IMarkdownReportCreator _markdownReportCreator;
         private readonly IExceptionHandler      _exceptionHandler;
         private readonly IQueryManager          _queryManager;
@@ -25,7 +26,8 @@ namespace KanbanReporter.Business.Implementation
             if(_dependencyResolver == null)
                  _dependencyResolver = new Container(new ServiceRegistry(log, settings));
 
-            _log                   = log;            
+            _log                   = log;
+            _settings              = settings;
             _markdownReportCreator = _dependencyResolver.GetInstance<IMarkdownReportCreator>();
             _exceptionHandler      = _dependencyResolver.GetInstance<IExceptionHandler>();
             _queryManager          = _dependencyResolver.GetInstance<IQueryManager>();
@@ -50,7 +52,7 @@ namespace KanbanReporter.Business.Implementation
             _log.Enter(this);
 
             // If a Query does not exist, generate it
-            var adoQueries = await _queryManager.LoadAllAsync();
+            var adoQueries = await _queryManager.LoadAllAsync();            
             var reportQuery = adoQueries.FirstOrDefault(q => q.Name == EXPECTED_QUERY_NAME);
 
             if (reportQuery == null)
@@ -78,7 +80,7 @@ namespace KanbanReporter.Business.Implementation
             var readmefileDetails = await _sourceControlManager.GetVersionDetailsForReadmeFileAsync();
             if (readmefileDetails == null)
             {
-                _log.LogWarning("Unable to find target README.md file");
+                _log.LogWarning($"Unable to find target file: {_settings["MarkdownFilePath"]}");
                 return;
             }
 
