@@ -6,12 +6,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace KanbanReporterCmd
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -24,11 +25,7 @@ namespace KanbanReporterCmd
             }
 
             var reportService = new ReportService(new ConsoleLogger(), new ConsoleSettings(args));
-
-            reportService
-                .CreateReportAsync()
-                .GetAwaiter()
-                .GetResult();
+            await reportService.CreateReportAsync();
 
             Console.WriteLine($"KanbanReporter finished in {stopwatch.ElapsedMilliseconds}ms.");
         }
