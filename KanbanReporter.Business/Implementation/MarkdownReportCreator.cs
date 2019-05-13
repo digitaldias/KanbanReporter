@@ -57,6 +57,7 @@ namespace KanbanReporter.Business.Implementation
 
             foreach (var group in sprintGroups)
             {
+                _log.LogInfo($"Processing '{group.Key}'");
                 var groupText = new List<string>();
 
                 if (!group.Key.Contains("\\"))
@@ -114,6 +115,9 @@ namespace KanbanReporter.Business.Implementation
 
             var enterWorkColumn = boardColumnUpdates.Where(c => c.fields.SystemBoardColumn.newValue == workColumnName).FirstOrDefault();
             var leftWorkColumn  = boardColumnUpdates.Where(c => c.fields.SystemBoardColumn.oldValue == workColumnName).LastOrDefault();
+
+            if (enterWorkColumn == null || leftWorkColumn == null)
+                return TimeSpan.Zero;
 
             startTime = enterWorkColumn.revisedDate;
             stopTime  = leftWorkColumn.revisedDate;

@@ -90,7 +90,6 @@ namespace KanbanReporter.Business.Implementation
                 _log.LogWarning("Unable to push the latest report to source control");
                 return;
             }
-
             _log.LogInfo("Report created and pushed to source control.");
         }
     }
