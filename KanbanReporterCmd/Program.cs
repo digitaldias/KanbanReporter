@@ -47,7 +47,8 @@ namespace KanbanReporterCmd
                 ["AdoRepositoryId"]        = "[The GUID of the repository for which KanbanReporter will submit its report]",
                 ["AdoRepositoryName"]      = "[The name of the repository for which KanbanReporter will submit its report]",
                 ["AdoBranchName"]          = "[The branch that KanbanReporter will operate on]",                                
-                ["MarkdownFilePath"]       = "[Relative path to the readme file, i.e. /refs/heads/KanbanReporter/Readme.md]"
+                ["MarkdownFilePath"]       = "[Relative path to the readme file, i.e. /refs/heads/KanbanReporter/Readme.md]",
+                ["CreatePullRequest"]      = true
             };
 
             builder.Append(jObject.ToString(Formatting.Indented));

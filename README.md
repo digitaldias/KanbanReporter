@@ -39,12 +39,12 @@ Sample `local.settings.json` file contents:
   "Values": {
     "AzureWebJobsStorage "  : "UseDevelopmentStorage=true",
     "AdoOrgName"            : "myOrgName",
-    "AdoProjectName"        : "My VSO Project",
-    "AdoQueryGuid"          : "a8ef9b60-97db-4018-b6f7-688b60646c20",
+    "AdoProjectName"        : "My VSO Project",    
     "AdoPersonalAccessToken": "------------------------------------",
-    "AdoRepositoryName"     : "RepositoryName",
-    "AdoBranchName"         : "refs/heads/KanbanReporter/Reports"
-    "MarkdownFilePath"      : "/README.md"
+    "AdoRepositoryName"     : "RepositoryName i.e. 'development'",
+    "AdoBranchName"         : "refs/heads/KanbanReporter/Reports",
+    "MarkdownFilePath"      : "/README.md",
+    "CreatePullRequest"     : true | false
   }
 }
 ```
@@ -58,11 +58,11 @@ Sample `local.settings.json` file contents:
 | Values.AzureWebJobsStorage | Connection string to the Azure Storage that the Azure Function uses | 
 | Values.AdoOrgName | The name of the Organization, used to construct the REST url | 
 | Values.AdoProjectName | The name of the project within the organization for which the report will be generated | 
-| Values.AdoQueryGuid | The id (GUID) of the query that lists closed User Stories | 
-| Valies.AdoPersonalAccessToken | A Personal Access Token with rights to read and execute queries, commit to source control, and create pull requests | 
+| Valies.AdoPersonalAccessToken | A [Personal Access Token](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops) with rights to read and execute queries, commit to source control, and create pull requests | 
 | Values.AdoRepositoryName | Name of the repository that will contain the pushed report | 
 | Values.AdoBranchName | The branch to which KanbanReporter will submit code and create pull requests for |
 | Values.MarkdownFilePath | Complete path to the report filename within the relative source control tree | 
+| Values.CreatePullRequest | (bool) Wether or not the KanbanReporter should create a pull request to master after committing the report or not | 
 
 > **NOTES** <br />
 > - The value of the Personal Access Token has been anonymized in this document <br />
