@@ -44,7 +44,7 @@ Sample `local.settings.json` file contents:
     "AdoRepositoryName"     : "RepositoryName i.e. 'development'",
     "AdoBranchName"         : "refs/heads/KanbanReporter/Reports",
     "MarkdownFilePath"      : "/README.md",
-    "CreatePullRequest"     : true | false
+    "CreatePullRequest"     : true 
   }
 }
 ```
