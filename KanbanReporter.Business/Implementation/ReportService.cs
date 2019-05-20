@@ -37,9 +37,10 @@ namespace KanbanReporter.Business.Implementation
         /// <summary>
         /// Used for adding support for unit-testing. Do not make this constructor public
         /// </summary>
-        internal ReportService(ILogger log, IMarkdownReportCreator markdownReportCreator, IExceptionHandler exceptionHandler, IQueryManager queryManager, ISourceControlManager sourceControlManager)
+        internal ReportService(ILogger log, ISettings settings, IMarkdownReportCreator markdownReportCreator, IExceptionHandler exceptionHandler, IQueryManager queryManager, ISourceControlManager sourceControlManager)
         {
-            _log                   = log;            
+            _log                   = log;
+            _settings              = settings;
             _markdownReportCreator = markdownReportCreator;
             _exceptionHandler      = exceptionHandler;
             _queryManager          = queryManager;
@@ -52,7 +53,7 @@ namespace KanbanReporter.Business.Implementation
             _log.Enter(this);
 
             // If a Query does not exist, generate it
-            var adoQueries = await _queryManager.LoadAllAsync();            
+            var adoQueries  = await _queryManager.LoadAllAsync();            
             var reportQuery = adoQueries.FirstOrDefault(q => q.Name == EXPECTED_QUERY_NAME);
 
             if (reportQuery == null)
@@ -84,11 +85,23 @@ namespace KanbanReporter.Business.Implementation
                 return;
             }
 
-            // Commit and create pull request
-            if (!await _sourceControlManager.CommitReportAndCreatePullRequestAsync(finalReport, readmefileDetails))
+            // Commit the new report to the working branch
+            var gitBranchReference = await _sourceControlManager.CommitReport(finalReport, readmefileDetails);
+            if(gitBranchReference == null)
             {
-                _log.LogWarning("Unable to push the latest report to source control");
+                _log.LogWarning("Unable to commit the latest report to source control");
                 return;
+            }
+
+            // Do we want to create a pull request too?
+            bool.TryParse(_settings["CreatePullRequest"], out bool doCommit);
+            if(doCommit)
+            {
+                if(! await _sourceControlManager.CreatePullRequest(gitBranchReference))
+                {
+                    _log.LogWarning("Unable to create Pull request");
+                    return;
+                }
             }
             _log.LogInfo("Report created and pushed to source control.");
         }

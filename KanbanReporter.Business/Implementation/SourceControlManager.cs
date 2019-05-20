@@ -15,7 +15,7 @@ namespace KanbanReporter.Business.Implementation
         public SourceControlManager(ISettings settings, ILogger log): base(settings, log) {
         }
 
-        public async Task<bool> CommitReportAndCreatePullRequestAsync(string finalReport, VersionedFileDetails readmefileDetails)
+        public async Task<Value> CommitReport(string finalReport, VersionedFileDetails readmefileDetails)
         {
             _log.Enter(this, args: readmefileDetails.path);
 
@@ -24,7 +24,7 @@ namespace KanbanReporter.Business.Implementation
             if (gitBranchReference == null)
             {
                 _log.LogError($"Unable to find branch: '{_settings["adoBranchName"]}'");
-                return false;
+                return null;
             }
 
             // Create a commit for the finalReport
@@ -35,11 +35,34 @@ namespace KanbanReporter.Business.Implementation
             if (commitResponse == null)
             {
                 _log.LogError("Unable to commit the report to ADO");
-                return false;
+                return null;
             }
+            return gitBranchReference;
+        }
 
-            // Create a pull request from the newly pushed document
-            return await CreatePullRequestForBranch(gitBranchReference);
+        public async Task<bool> CreatePullRequest(Value gitBranchReference)
+        {
+            _log.Enter(this, args: gitBranchReference.name);
+
+            var pullRequestUri = new Uri($"https://dev.azure.com/{_adoOrgName}/_apis/git/repositories/{_adoRepositoryId}/pullrequests?api-version=5.0");
+
+            var pullRequest = new PullRequest
+            {
+                title         = $"KanbanReporter updated the last Sprint Report ({gitBranchReference.name})",
+                description   = "This is an automatically generated pull request",
+                sourceRefName = gitBranchReference.name,
+                targetRefName = "refs/heads/master"
+            };
+
+            var pullRequestJson     = JsonConvert.SerializeObject(pullRequest);
+            var pullRequestContent  = new StringContent(pullRequestJson, Encoding.UTF8, "application/json");
+            var pullRequestResponse = await HttpClient.PostAsync(pullRequestUri, pullRequestContent);
+
+            // If the pull request already exists then that is perfectly fine and we will return success
+            if (pullRequestResponse.StatusCode == System.Net.HttpStatusCode.Conflict)
+                return true;
+
+            return pullRequestResponse.IsSuccessStatusCode;
         }
 
         /// <summary>
@@ -81,31 +104,6 @@ namespace KanbanReporter.Business.Implementation
                 return json["value"][0]["commitId"].Value<string>();
             }
             return await Task.FromResult(string.Empty);
-        }
-
-        private async Task<bool> CreatePullRequestForBranch(Value gitBranchReference)
-        {
-            _log.Enter(this, args: gitBranchReference.name);
-
-            var pullRequestUri = new Uri($"https://dev.azure.com/{_adoOrgName}/_apis/git/repositories/{_adoRepositoryId}/pullrequests?api-version=5.0");
-
-            var pullRequest = new PullRequest
-            {
-                title = "KanbanReporter updated the last Sprint Report (README.md)",
-                description = "This is an automatically generated pull request",
-                sourceRefName = gitBranchReference.name,
-                targetRefName = "refs/heads/master"
-            };
-
-            var pullRequestJson = JsonConvert.SerializeObject(pullRequest);
-            var pullRequestContent = new StringContent(pullRequestJson, Encoding.UTF8, "application/json");
-            var pullRequestResponse = await HttpClient.PostAsync(pullRequestUri, pullRequestContent);
-
-            // If the pull request already exists then that is perfectly fine and we will return success
-            if (pullRequestResponse.StatusCode == System.Net.HttpStatusCode.Conflict)
-                return true;
-
-            return pullRequestResponse.IsSuccessStatusCode;
         }
 
         internal async Task<Value> GetOrCreateBranchAsync()

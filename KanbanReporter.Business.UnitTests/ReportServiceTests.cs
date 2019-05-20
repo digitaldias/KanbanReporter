@@ -13,6 +13,7 @@ namespace KanbanReporter.Business.UnitTests
     public class ReportServiceTests 
     {
         private readonly Mock<ILogger>                _loggerMock;
+        private readonly Mock<ISettings>              _settingsMock;
         private readonly Mock<ISourceControlManager>  _sourceControlManagerMock;
         private readonly Mock<IQueryManager>          _queryManagerMock;
         private readonly Mock<IMarkdownReportCreator> _markdownReportCreatorMock;
@@ -25,12 +26,13 @@ namespace KanbanReporter.Business.UnitTests
         public ReportServiceTests()
         {
             _loggerMock                = new Mock<ILogger>();
+            _settingsMock              = new Mock<ISettings>();
             _sourceControlManagerMock  = new Mock<ISourceControlManager>();
             _queryManagerMock          = new Mock<IQueryManager>();
             _markdownReportCreatorMock = new Mock<IMarkdownReportCreator>();
             _exceptionHandler          = new ExceptionHandler(_loggerMock.Object);
 
-            Instance = new ReportService(_loggerMock.Object, _markdownReportCreatorMock.Object, _exceptionHandler, _queryManagerMock.Object, _sourceControlManagerMock.Object);
+            Instance = new ReportService(_loggerMock.Object, _settingsMock.Object, _markdownReportCreatorMock.Object, _exceptionHandler, _queryManagerMock.Object, _sourceControlManagerMock.Object);
         }
 
         [Fact]
@@ -104,7 +106,7 @@ namespace KanbanReporter.Business.UnitTests
             await Instance.CreateReportAsync();
 
             // Assert
-            _sourceControlManagerMock.Verify(client => client.CommitReportAndCreatePullRequestAsync(It.IsAny<string>(), fakeVersion), Times.Once);
+            _sourceControlManagerMock.Verify(client => client.CommitReport(It.IsAny<string>(), fakeVersion), Times.Once);
         }
 
 
@@ -130,10 +132,11 @@ namespace KanbanReporter.Business.UnitTests
             // Arrange
             var workItems   = AdoClientWillReturnOneHundredWorkItems();
             var fakeVersion = Builder<VersionedFileDetails>.CreateNew().Build();
+            var someValue   = Builder<Value>.CreateNew().Build();
 
             _markdownReportCreatorMock.Setup(creator => creator.CreateFromWorkItems(workItems)).Returns("#awesome");
             _sourceControlManagerMock.Setup(client => client.GetVersionDetailsForReadmeFileAsync()).Returns(Task.FromResult(fakeVersion));
-            _sourceControlManagerMock.Setup(client => client.CommitReportAndCreatePullRequestAsync(It.IsAny<string>(), fakeVersion)).Returns(Task.FromResult(true));
+            _sourceControlManagerMock.Setup(client => client.CommitReport(It.IsAny<string>(), fakeVersion)).Returns(Task.FromResult(someValue));
 
             // Act
             await Instance.CreateReportAsync();
