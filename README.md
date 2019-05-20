@@ -26,8 +26,18 @@ In order to ensure KanbanReporter is healthy, ensure the following:
 - The pull request needs to be manually approved by someone other than the owner of the Personal Access Token
 
 ## Developer Notes
-To maintain this project, the developer needs to create a `local.settings.json` file to give the program the necessary secrets during development runs.<br />
-Once deployed onto Azure, the settings will exist as part of the Azure Function settings, and this file will not be required or used. 
+
+KanbanReporter relies on a set of settings in order to function. 
+
+### KanbanReporter (as an Azure Function)
+Create a `local.settings.json` file to give the program the necessary secrets during development runs.<br />
+Once deployed onto Azure, the settings are configured as part of the Azure Function, and this file will not be required or used. 
+
+### KanbanReporterCmd (as a command line tool)
+In order to run KanbanReporter as a command line tool, the settings are provided as a file reference: 
+<pre>
+> KanbanReporter --input-file c:\settings\kanbanreporter.settings.json
+</pre>
 
 > DO NOT ADD `local.settings.json` TO SOURCE CONTROL <br />
 > The file is already listed in the **.gitignore** file, and should only exist on the developer's computer 
