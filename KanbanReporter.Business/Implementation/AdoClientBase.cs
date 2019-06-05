@@ -28,20 +28,13 @@ namespace KanbanReporter.Business.Implementation
             _settings = settings;
             _log = log;
 
-            try
-            {
-                _adoOrgName             = settings["AdoOrgName"];
-                _adoProjectName         = settings["AdoProjectName"];
-                _adoPersonalAccessToken = settings["AdoPersonalAccessToken"];
-                _adoRepositoryId        = settings["AdoRepositoryId"];
-                _repositoryName         = settings["AdoRepositoryName"];
-                _adoBranchName          = settings["AdoBranchName"];
-                _markdownFilePath       = settings["MarkdownFilePath"];
-            }
-            catch(Exception ex)
-            {
-                _log.LogError(ex.Message);
-            }
+            _adoOrgName             = settings["AdoOrgName"];
+            _adoProjectName         = settings["AdoProjectName"];
+            _adoPersonalAccessToken = settings["AdoPersonalAccessToken"];
+            _adoRepositoryId        = settings["AdoRepositoryId"];
+            _repositoryName         = settings["AdoRepositoryName"];
+            _adoBranchName          = settings["AdoBranchName"];
+            _markdownFilePath       = settings["MarkdownFilePath"];
 
             // All settings are required
             if (string.IsNullOrEmpty(_adoOrgName))             throw new InvalidProgramException("AdoOrgName was not set");
@@ -53,7 +46,7 @@ namespace KanbanReporter.Business.Implementation
             if (string.IsNullOrEmpty(_adoBranchName))          throw new InvalidProgramException("The ADO Branch name was not set");
         }
 
-        protected HttpClient HttpClient
+        protected static HttpClient HttpClient
         {
             get
             {

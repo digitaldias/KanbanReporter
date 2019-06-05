@@ -12,7 +12,7 @@ namespace KanbanReporter.Business.UnitTests
 {
     public class GuidValidatorTests
     {
-        private TestInstance test = new TestInstance();
+        private readonly TestInstance test = new TestInstance();
 
         private class TestInstance : TestsFor<GuidValidator>
         {

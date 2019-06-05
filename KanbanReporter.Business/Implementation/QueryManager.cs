@@ -19,7 +19,7 @@ namespace KanbanReporter.Business.Implementation
         // State
         private string _sharedQueriesId;
 
-        public QueryManager(ISettings settings, ILogger log, IGuidValidator guidValidator) : base(settings, log)
+        public QueryManager(ISettings settings, ILogger log) : base(settings, log)
         {
         }
 

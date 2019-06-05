@@ -26,6 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <NoWarn>IDE0039;</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -85,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExceptionHandlerTests.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="GuidValidatorTests.cs" />
     <Compile Include="MarkdownReportCreatorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

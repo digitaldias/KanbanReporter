@@ -19,17 +19,21 @@ namespace KanbanReporter.Business.Implementation
             if (unsafeFunction == null)
             {
                 _log.LogWarning("GetAsync<TResult> was called with a null reference");
-                return default(TResult);
+                return default;
             }
             try
             {
                 return await unsafeFunction.Invoke();
             }
+            catch(AggregateException aex)
+            {
+                _log.LogError($"AGGREGATE: {aex.InnerException.Message}");
+            }
             catch(Exception ex)
             {
                 _log.LogError(ex.Message, ex);
             }
-            return default(TResult);
+            return default;
         }
 
         public void RunSyncronously(Func<Task> unsafeFunction)

@@ -20,7 +20,7 @@ namespace KanbanReporter.Business.Implementation
             if (string.IsNullOrEmpty(candidate))
                 return false;
 
-            if (Guid.TryParse(candidate, out Guid wathever))
+            if (Guid.TryParse(candidate, out _))
                 return true;
 
             return false;

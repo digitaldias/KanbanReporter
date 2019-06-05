@@ -92,7 +92,7 @@ namespace KanbanReporter.Business.Implementation
             return result.value.FirstOrDefault(i => i.path == _markdownFilePath);
         }
 
-        private async Task<string> GetLatestCommitToMaster(Value masterBranch)
+        private async Task<string> GetLatestCommitToMaster()
         {
             const string LIST_COMMITS_TEMPLATE = "https://dev.azure.com/{0}/{1}/_apis/git/repositories/{2}/commits?searchCriteria.$top=1&api-version=5.0";
             var uri = new Uri(string.Format(LIST_COMMITS_TEMPLATE, _adoOrgName, _adoProjectName, _adoRepositoryId));
@@ -128,19 +128,19 @@ namespace KanbanReporter.Business.Implementation
                 else if (getRefsResult.value.Any(r => r.name == MASTER_BRANCH_NAME))
                 {
                     var masterBranch = getRefsResult.value.FirstOrDefault(r => r.name == MASTER_BRANCH_NAME);
-                    return await CreateBranchAsync(masterBranch);
+                    return await CreateBranchAsync();
                 }
             }
             return null;
         }
 
-        internal async Task<Value> CreateBranchAsync(Value masterBranch)
+        internal async Task<Value> CreateBranchAsync()
         {
             _log.Enter(this);
             const string CREATE_BRANCH_TEMPLATE = "https://dev.azure.com/{0}/{1}/_apis/git/repositories/{2}/refs?api-version=5.0";
 
             var uri = new Uri(string.Format(CREATE_BRANCH_TEMPLATE, _adoOrgName, _adoProjectName, _adoRepositoryId));
-            var latestCommitToMaster = await GetLatestCommitToMaster(masterBranch);
+            var latestCommitToMaster = await GetLatestCommitToMaster();
 
             var package = new
             {
@@ -206,16 +206,6 @@ namespace KanbanReporter.Business.Implementation
                 return JsonConvert.DeserializeObject<CommitResponse>(rawContent);
             }
             return null;
-        }
-
-        private string GenerateGuidOfLength(int length)
-        {
-            var builder = new StringBuilder();
-            while (builder.Length < length)
-            {
-                builder.Append(Guid.NewGuid().ToString("N"));
-            }
-            return builder.ToString(0, length);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace KanbanReporter.Business.UnitTests
 {
     public class ExceptionHandlerTests 
     {
-        private InternalTestClass test = new InternalTestClass();
+        private readonly InternalTestClass test = new InternalTestClass();
 
         private class InternalTestClass : TestsFor<ExceptionHandler>
         {
@@ -83,7 +83,7 @@ namespace KanbanReporter.Business.UnitTests
             var result = await test.Instance.GetAsync(nullFunction);
 
             // Assert
-            result.ShouldEqual(default(int));
+            result.ShouldEqual(default);
         }
 
         [Fact]
@@ -126,7 +126,7 @@ namespace KanbanReporter.Business.UnitTests
             var result = await test.Instance.GetAsync(badFunction);
 
             // Assert
-            result.ShouldEqual(default(Workitem));
+            result.ShouldEqual(default);
         }
     }
 }

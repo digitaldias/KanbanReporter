@@ -15,7 +15,7 @@ namespace KanbanReporter.Business.UnitTests
     {
         private class InternalTestClass : TestsFor<MarkdownReportCreator> { }
 
-        private InternalTestClass test = new InternalTestClass();
+        private readonly InternalTestClass test = new InternalTestClass();
 
         [Fact]
         public void CreateFromWorkItems_WhenCalled_LogsTheMethodCall()
