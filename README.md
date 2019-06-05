@@ -34,6 +34,9 @@ Create a `local.settings.json` file to give the program the necessary secrets du
 Once deployed onto Azure, the settings are configured as part of the Azure Function, and this file will not be required or used. 
 
 ### KanbanReporterCmd (as a command line tool)
+
+To build a single executable `Kanbanreporter` for your environment, it is recommended to use the `Warp Tool` for creating a single executable. Follow the [instructions provided on github](https://github.com/dgiagio/warp#quickstart-with-net-core) to set up Warp on your computer. 
+
 In order to run KanbanReporter as a command line tool, the settings are provided as a file reference: 
 <pre>
 > KanbanReporter --input-file c:\settings\kanbanreporter.settings.json
